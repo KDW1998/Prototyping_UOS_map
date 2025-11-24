@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Output directories
+초해상화_이미지/
+균열탐지_결과/
+*.html
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model checkpoints (large files) - 모델 폴더의 파일은 제외하지 않음
+# 모델/ 폴더 안의 .pth 파일은 git에 포함됨
+# *.pth
+# *.pt
+# *.ckpt
+
+# Temporary files
+*.tmp
+*.temp
+
+# Keep example images in 촬영이미지/ folder
+# but ignore large files
+# 촬영이미지/*.jpg
