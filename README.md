@@ -159,12 +159,12 @@ bash 균열탐지.sh
 
 ### 2. 초해상화 (Super Resolution)
 - EDSR (Enhanced Deep Super-Resolution) 모델 사용
-- 이미지 해상도를 2배 향상 (예: 2048x2048 → 4096x4096)
+- 이미지 해상도를 4배 향상 (예: 1024x1024 → 4096x4096)
 - 더 정확한 균열 탐지를 위한 전처리
 
 ### 3. 균열 탐지 (Crack Detection)
 - **모델**: ConvNeXt-Tiny FPN 기반 Semantic Segmentation
-- **추론**: Multi-scale sliding window 방식 (2048×2048 윈도우)
+- **추론**: Multi-scale sliding window 방식 (1024×1024 윈도우)
 - **정량화**: Medial axis를 이용한 균열 폭과 길이 측정 (픽셀 단위)
 - **실제 크기 계산**: Pin-hole 모델로 픽셀 → mm 변환
   ```
@@ -216,7 +216,7 @@ SUPER_RESOLUTION_SCALE = 2.0  # 2배 확대
 
 ```python
 # 슬라이딩 윈도우 크기 (더 큰 값 = 더 느리지만 더 정확)
-WINDOW_SIZE = 2048
+WINDOW_SIZE = 1024
 
 # 윈도우 겹침 비율 (0.0 ~ 1.0)
 OVERLAP_RATIO = 0.1
@@ -290,7 +290,7 @@ pip install mmagic==1.0.1
 - **헤드**: FPN (Feature Pyramid Network)
 - **학습 데이터**: Hard Negative Samples 포함
 - **출력**: Binary mask (0: 배경, 1: 균열)
-- **윈도우 크기**: 2048×2048 (multi-scale inference)
+- **윈도우 크기**: 1,024×1,024 (multi-scale inference)
 - **Overlap**: 10% (정확도 향상)
 
 ### 정량화 알고리즘
