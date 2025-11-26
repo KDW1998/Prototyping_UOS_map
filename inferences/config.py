@@ -29,12 +29,12 @@ SENSOR_HEIGHT_MM = 6.14  # S22 일반 모델 센서 세로
 FOCAL_LENGTH_MM = 5.4  # 일반적인 스마트폰 카메라
 
 # 이미지 해상도 (픽셀) - 실제 촬영 이미지 해상도에 맞게 수정
-IMAGE_WIDTH_PX = 400
-IMAGE_HEIGHT_PX = 400
+IMAGE_WIDTH_PX = 4032
+IMAGE_HEIGHT_PX = 3024
 
 # 초해상화 스케일 (SR scale factor)
 # 예: 2.0 = 2배 확대, 4.0 = 4배 확대
-SUPER_RESOLUTION_SCALE = 2.0  # EDSR 모델의 스케일에 맞게 설정
+SUPER_RESOLUTION_SCALE = 4.0  # EDSR 모델의 스케일에 맞게 설정
 
 # =============================================================================
 # 크기 필터링 설정 (픽셀 단위)

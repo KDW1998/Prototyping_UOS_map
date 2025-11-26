@@ -57,11 +57,11 @@ def convert_crack_to_real_size(crack_quantification_results, pixel_to_mm):
     픽셀 단위 균열 정보를 실제 크기(mm)로 변환
     
     Args:
-        crack_quantification_results (list): [(coordinates, "widthxlength", class_id), ...]
+        crack_quantification_results (list): [(coordinates, "avg_width x max_width x length", class_id), ...]
         pixel_to_mm (float): 픽셀→mm 변환 비율
     
     Returns:
-        list: [(coordinates, width_mm, length_mm, "width_mm x length_mm", class_id), ...]
+        list: [(coordinates, avg_width_mm, max_width_mm, length_mm, measurement_str, class_id), ...]
     """
     converted_results = []
     
@@ -71,18 +71,23 @@ def convert_crack_to_real_size(crack_quantification_results, pixel_to_mm):
         class_id = result[2]
         
         try:
-            # "width x length" 형식 파싱
-            width_px, length_px = map(float, measurements.split('x'))
+            # "avg_width x max_width x length" 형식 파싱
+            parts = measurements.split('x')
+            avg_width_px = float(parts[0])
+            max_width_px = float(parts[1])
+            length_px = float(parts[2])
             
-            # 실제 크기로 변환
-            width_mm = width_px * pixel_to_mm * 2  # width는 반지름이므로 2배
+            # 실제 크기로 변환 (width는 반지름이므로 2배)
+            avg_width_mm = avg_width_px * pixel_to_mm * 2
+            max_width_mm = max_width_px * pixel_to_mm * 2
             length_mm = length_px * pixel_to_mm
             
-            measurement_str = f"{width_mm:.2f}mm x {length_mm:.2f}mm"
+            measurement_str = f"평균:{avg_width_mm:.2f}mm, 최대:{max_width_mm:.2f}mm, 길이:{length_mm:.2f}mm"
             
             converted_results.append([
                 coordinates,
-                width_mm,
+                avg_width_mm,
+                max_width_mm,
                 length_mm,
                 measurement_str,
                 class_id
@@ -165,7 +170,11 @@ def filter_crack_by_size(crack_quantification_results, min_area=None, min_width=
         measurements = result[1]
         
         try:
-            width, length = map(float, measurements.split('x'))
+            # "avg_width x max_width x length" 형식 파싱
+            parts = measurements.split('x')
+            avg_width = float(parts[0])
+            max_width = float(parts[1])
+            length = float(parts[2])
         except:
             continue
         
@@ -177,14 +186,14 @@ def filter_crack_by_size(crack_quantification_results, min_area=None, min_width=
                 max_coords = tuple(map(int, coord_parts[1].split(',')))
                 area = (max_coords[0] - min_coords[0]) * (max_coords[1] - min_coords[1])
             except:
-                area = width * length
+                area = avg_width * length
         else:
-            area = width * length
+            area = avg_width * length
         
         # 크기 필터링 (0이면 필터링 안함)
         if min_area is not None and min_area > 0 and area < min_area:
             continue
-        if min_width is not None and min_width > 0 and width < min_width:
+        if min_width is not None and min_width > 0 and avg_width < min_width:
             continue
         if min_length is not None and min_length > 0 and length < min_length:
             continue
@@ -293,9 +302,10 @@ def main():
             print(f"Converted to real size: {len(crack_real_size_results)} cracks")
             
             # 크기 필터링 (실제 크기 기준)
+            # crack_real_size_results 구조: [coordinates, avg_width_mm, max_width_mm, length_mm, measurement_str, class_id]
             filtered_cracks = [
                 crack for crack in crack_real_size_results
-                if crack[1] >= CONFIG['MIN_CRACK_WIDTH'] and crack[2] >= CONFIG['MIN_CRACK_LENGTH']
+                if crack[1] >= CONFIG['MIN_CRACK_WIDTH'] and crack[3] >= CONFIG['MIN_CRACK_LENGTH']
             ]
             
             print(f"After filtering: {len(filtered_cracks)} cracks")
@@ -339,34 +349,35 @@ def main():
                 
                 print(f"Saved to: {output_path}")
                 
-                # 균열 정보 수집 (최대 균열 정보)
+                # 균열 정보 수집
+                # crack_real_size_results 구조: [coordinates, avg_width_mm, max_width_mm, length_mm, measurement_str, class_id]
                 if crack_real_size_results:
-                    max_crack = max(crack_real_size_results, key=lambda x: x[1] * x[2])  # 면적 기준
-                    max_width_mm = max_crack[1]
-                    max_length_mm = max_crack[2]
                     crack_count = len(crack_real_size_results)
                     
-                    # 평균 균열 크기
+                    # 평균 균열 폭 (모든 균열의 평균 폭의 평균)
                     avg_width_mm = np.mean([c[1] for c in crack_real_size_results])
-                    avg_length_mm = np.mean([c[2] for c in crack_real_size_results])
+                    
+                    # 최대 균열 폭 (모든 균열의 최대 폭 중 최댓값)
+                    max_width_mm = np.max([c[2] for c in crack_real_size_results])
+                    
+                    # 총 길이 (모든 균열 길이의 합)
+                    total_length_mm = np.sum([c[3] for c in crack_real_size_results])
                 else:
-                    max_width_mm = 0
-                    max_length_mm = 0
                     avg_width_mm = 0
-                    avg_length_mm = 0
+                    max_width_mm = 0
+                    total_length_mm = 0
                     crack_count = 0
                 
-                # 탐지 결과 추가 (실제 크기 정보 포함)
+                # 탐지 결과 추가
                 detection_results.append({
                     '위도': latitude,
                     '경도': longitude,
                     '이미지 경로': output_name,
                     '촬영시간': timestamp if timestamp else '',
                     '균열 개수': crack_count,
-                    '최대 균열 폭(mm)': round(max_width_mm, 2),
-                    '최대 균열 길이(mm)': round(max_length_mm, 2),
                     '평균 균열 폭(mm)': round(avg_width_mm, 2),
-                    '평균 균열 길이(mm)': round(avg_length_mm, 2),
+                    '최대 균열 폭(mm)': round(max_width_mm, 2),
+                    '총 균열 길이(mm)': round(total_length_mm, 2),
                 })
             else:
                 print(f"No significant cracks detected")

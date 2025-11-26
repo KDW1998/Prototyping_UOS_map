@@ -123,16 +123,18 @@ def _calculate_crack_width_length(crack_mask, distance_map):
         crack_mask (ndarray): The crack mask image. The shape is (H, W).
         distance_map (ndarray): The distance map. The shape is (H, W).
     Returns:
-        crack_width (float): The crack width.
+        crack_width_avg (float): The average crack width.
+        crack_width_max (float): The maximum crack width.
         crack_length (float): The crack length.
     """
     crack_distance_map = distance_map * crack_mask
 
-    crack_width = np.mean(crack_distance_map[crack_distance_map > 0])
+    crack_width_avg = np.mean(crack_distance_map[crack_distance_map > 0])
+    crack_width_max = np.max(crack_distance_map[crack_distance_map > 0])
 
     crack_length = np.sum(crack_distance_map > 0)
 
-    return crack_width, crack_length
+    return crack_width_avg, crack_width_max, crack_length
 
 
 
@@ -175,7 +177,7 @@ def quantify_crack_width_length(seg_result, mask_output, color, minimum_area=500
         if np.sum(crack_mask) < minimum_area:
             continue
 
-        crack_width, crack_length = _calculate_crack_width_length(crack_mask, distance_map)
+        crack_width_avg, crack_width_max, crack_length = _calculate_crack_width_length(crack_mask, distance_map)
 
         # get crack x, y   
         crack_num = crack_id - 1
@@ -188,7 +190,7 @@ def quantify_crack_width_length(seg_result, mask_output, color, minimum_area=500
         # Store crack quantification data
         crack_quantification_results.append([
             f"({minr},{minc})-({maxr},{maxc})",  # Pixel_Coordinates
-            f"{crack_width:.2f}x{crack_length:.2f}",  # Measurements
+            f"{crack_width_avg:.2f}x{crack_width_max:.2f}x{crack_length:.2f}",  # Measurements (avg_width x max_width x length)
             1  # class_id (crack class)
         ])
 
@@ -198,7 +200,7 @@ def quantify_crack_width_length(seg_result, mask_output, color, minimum_area=500
 
         # display on image
         seg_result = cv2.putText(
-            seg_result, f'Crack: {crack_width:.2f} x {crack_length:.2f}', (textc, textr), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, font_thickness, cv2.LINE_AA)
+            seg_result, f'Crack: {crack_width_avg:.2f} x {crack_length:.2f}', (textc, textr), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, font_thickness, cv2.LINE_AA)
 
         # put rectangle on crack
         seg_result = cv2.rectangle(seg_result, (minc, minr), (maxc, maxr), color, line_thickness)

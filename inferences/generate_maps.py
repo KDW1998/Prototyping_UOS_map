@@ -91,10 +91,9 @@ def make_damage_list(df):
     for index, row in df.iterrows():
         # 균열 정보 추출
         crack_count = row.get('균열 개수', 0)
-        max_width = row.get('최대 균열 폭(mm)', 0)
-        max_length = row.get('최대 균열 길이(mm)', 0)
         avg_width = row.get('평균 균열 폭(mm)', 0)
-        avg_length = row.get('평균 균열 길이(mm)', 0)
+        max_width = row.get('최대 균열 폭(mm)', 0)
+        total_length = row.get('총 균열 길이(mm)', 0)
         timestamp = row.get('촬영시간', '')
         
         # 촬영시간 포맷팅 (ISO 형식 → 읽기 쉬운 형식)
@@ -113,10 +112,9 @@ def make_damage_list(df):
             "longitude": row['경도'],
             "timestamp": formatted_time,
             "crack_count": crack_count,
-            "max_width_mm": max_width,
-            "max_length_mm": max_length,
             "avg_width_mm": avg_width,
-            "avg_length_mm": avg_length,
+            "max_width_mm": max_width,
+            "total_length_mm": total_length,
         }
         ITEMS_DATA.append(item_dict)
     
@@ -130,10 +128,9 @@ def make_popup_html(item, encoded_image=None):
     
     # 균열 정보 추출
     crack_count = item.get('crack_count', 0)
-    max_width = item.get('max_width_mm', 0)
-    max_length = item.get('max_length_mm', 0)
     avg_width = item.get('avg_width_mm', 0)
-    avg_length = item.get('avg_length_mm', 0)
+    max_width = item.get('max_width_mm', 0)
+    total_length = item.get('total_length_mm', 0)
     timestamp = item.get('timestamp', '')
     
     # 헤더 정보 (촬영 시간)
@@ -156,10 +153,9 @@ def make_popup_html(item, encoded_image=None):
     <div style="margin: 5px 0; padding: 5px; background-color: #f0f0f0; border-radius: 3px;">
         <b>🔍 균열 정보</b><br>
         • 균열 개수: {crack_count}개<br>
-        • 최대 폭: {max_width:.2f}mm<br>
-        • 최대 길이: {max_length:.2f}mm<br>
         • 평균 폭: {avg_width:.2f}mm<br>
-        • 평균 길이: {avg_length:.2f}mm
+        • 최대 폭: {max_width:.2f}mm<br>
+        • 총 길이: {total_length:.2f}mm
     </div>
     """
     
@@ -235,7 +231,7 @@ def make_total_damage_map(damage_data, html_path_total, image_dir, metadata=None
 
         # Tooltip 정보 생성 (촬영시간 + 균열 요약)
         timestamp = item.get('timestamp', '')
-        tooltip_text = f"📸 {timestamp}\n🔍 균열 {item.get('crack_count', 0)}개 (최대: {item.get('max_width_mm', 0):.1f}mm)"
+        tooltip_text = f"📸 {timestamp}\n🔍 균열 {item.get('crack_count', 0)}개 (최대폭: {item.get('max_width_mm', 0):.1f}mm)"
 
         if encoded_image is None:
             popup = folium.Popup(popup_html, max_width=300)
@@ -274,7 +270,7 @@ def make_each_damage_map(map_data, html_path_each, image_dir):
 
     # Tooltip 정보 생성 (촬영시간 + 균열 요약)
     timestamp = map_data.get('timestamp', '')
-    tooltip_text = f"📸 {timestamp}\n🔍 균열 {map_data.get('crack_count', 0)}개 (최대: {map_data.get('max_width_mm', 0):.1f}mm)"
+    tooltip_text = f"📸 {timestamp}\n🔍 균열 {map_data.get('crack_count', 0)}개 (최대폭: {map_data.get('max_width_mm', 0):.1f}mm)"
 
     if encoded_image is None:
         popup = folium.Popup(popup_html, max_width=300)
